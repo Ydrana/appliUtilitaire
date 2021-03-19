@@ -51,10 +51,10 @@ class IncrementeurDate(ttk.Frame):
 
         self.label_param_days = ttk.Label(self.frame_param_date, text="Jours")
         self.int_date = tk.IntVar()
-        self.input_date = ttk.Entry(self.frame_param_date, textvariable=self.int_date, width=3)
+        self.input_date = ttk.Spinbox(self.frame_param_date, textvariable=self.int_date, from_=-10000, to=10000, width=5)
         self.label_param_hours = ttk.Label(self.frame_param_date, text="Heures")
         self.int_hours = tk.IntVar()
-        self.input_hours = ttk.Entry(self.frame_param_date, textvariable=self.int_hours, width=3)
+        self.input_hours = ttk.Spinbox(self.frame_param_date, textvariable=self.int_hours, from_=-10000, to=10000, width=4)
 
         self.label_param_days.grid(row=0, column=0, pady=7)
         self.input_date.grid(row=0, column=1, pady=7)
