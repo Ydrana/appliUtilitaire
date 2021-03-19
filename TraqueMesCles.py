@@ -9,8 +9,8 @@ from typing import Callable
 
 
 class TraqueMesCles(ttk.Frame):
-    pattern_utilisation = None
-    pattern_stockage = None
+    pattern_utilisation = re.compile('Utility\.message\(\"((?:\w|\.)*?)\"')
+    pattern_stockage = re.compile('((?:\w|\.)*?)\s\=')
     liste_stockage = None
     cle_non_defini: str = "clé(s) non définie(s)"
     cle_non_utilise: str = "clé(s) non utilisée(s)"
@@ -46,12 +46,12 @@ class TraqueMesCles(ttk.Frame):
         self.bouton_browse = ttk.Button(self.frame_input, text="+", width=2, command=self.choisir_dossier)
         self.str_url = tk.StringVar()
         self.input_url = tk.Entry(self.frame_input, textvariable=self.str_url, width=37)
+        self.input_url.insert(0, "Place Holder")
         self.bouton_lancer = ttk.Button(self.frame_input, text="Lancer", command=self.lancement_analyse)
 
         self.bouton_browse.grid(row=0, column=0, pady=7, sticky='NWE')
         self.input_url.grid(row=0, column=1, padx=2, pady=7)
         self.bouton_lancer.grid(row=0, column=2, pady=7)
-
 
     def lancement_analyse(self):
         """lancement de l'analyse des fichiers dans un thread parallèle"""
@@ -96,59 +96,57 @@ class TraqueMesCles(ttk.Frame):
                     self.recursive_search(files, liste)
 
     def traitement_analyse(self):
-        self.pattern_utilisation = re.compile('Utility\.message\(\"((?:\w|\.)*?)\"')
-        self.pattern_stockage = re.compile('((?:\w|\.)*?)\s\=')
 
-        liste_utilisation = []
-        self.liste_stockage = []
+        if self.str_url.get():
+            liste_utilisation = []
+            self.liste_stockage = []
 
-        self.recursive_search('C:\\Users\\Moth\\PycharmProjects\\Java\\3.9_Java_post_2031', liste_utilisation)
+            self.recursive_search(self.str_url.get(), liste_utilisation)
 
-        l_counts = [(liste_utilisation.count(x), x) for x in set(liste_utilisation)]
-        l_counts.sort(reverse=True)
+            l_counts = [(liste_utilisation.count(x), x) for x in set(liste_utilisation)]
+            l_counts.sort(reverse=True)
 
-        # Recherche clés non utilisées
-        liste_cle_non_utilisee = []
-        for msg_stock in set(self.liste_stockage):
-            if [item for item in l_counts if item[0] == msg_stock]:
-                print(msg_stock + " pas dans l_counts")
-            if msg_stock not in liste_utilisation:
-                liste_cle_non_utilisee.append(msg_stock)
+            # Recherche clés non utilisées
+            liste_cle_non_utilisee = []
+            for msg_stock in set(self.liste_stockage):
+                if [item for item in l_counts if item[0] == msg_stock]:
+                    print(msg_stock + " pas dans l_counts")
+                if msg_stock not in liste_utilisation:
+                    liste_cle_non_utilisee.append(msg_stock)
 
-        # Recherche clés non définies
-        liste_cle_non_definie = []
-        for element in set(liste_utilisation):
-            if element not in self.liste_stockage:
-                liste_cle_non_definie.append(element)
+            # Recherche clés non définies
+            liste_cle_non_definie = []
+            for element in set(liste_utilisation):
+                if element not in self.liste_stockage:
+                    liste_cle_non_definie.append(element)
 
-        print(str(len(liste_cle_non_definie)) + " clé(s) non définie(s)")
-        print(liste_cle_non_definie)
+            print(str(len(liste_cle_non_definie)) + " clé(s) non définie(s)")
+            print(liste_cle_non_definie)
 
-        print(str(len(liste_cle_non_utilisee)) + " clé(s) non utilisée(s)")
-        print(liste_cle_non_utilisee)
+            print(str(len(liste_cle_non_utilisee)) + " clé(s) non utilisée(s)")
+            print(liste_cle_non_utilisee)
 
-        # Nettoie les deux frames
-        self.frame_resultat_non_def.config(text='')
-        for child in self.frame_resultat_non_def.winfo_children():
-            child.destroy()
-        self.frame_resultat_non_utilise.config(text='')
-        for child in self.frame_resultat_non_utilise.winfo_children():
-            child.destroy()
+            # Nettoie les deux frames
+            self.frame_resultat_non_def.config(text='')
+            for child in self.frame_resultat_non_def.winfo_children():
+                child.destroy()
+            self.frame_resultat_non_utilise.config(text='')
+            for child in self.frame_resultat_non_utilise.winfo_children():
+                child.destroy()
 
-        self.frame_resultat_non_def.grid()
-        self.frame_resultat_non_def.config(text=str(len(liste_cle_non_definie)) + ' ' + self.cle_non_defini)
-        text_resultat_non_def = tk.Text(self.frame_resultat_non_def, height=15)
-        text_resultat_non_def.pack(fill=tk.BOTH, expand=True)
-        for i in liste_cle_non_definie:
-            text_resultat_non_def.insert(tk.END, i + '\n')
+            self.frame_resultat_non_def.grid()
+            self.frame_resultat_non_def.config(text=str(len(liste_cle_non_definie)) + ' ' + self.cle_non_defini)
+            text_resultat_non_def = tk.Text(self.frame_resultat_non_def, height=15)
+            text_resultat_non_def.pack(fill=tk.BOTH, expand=True)
+            for i in liste_cle_non_definie:
+                text_resultat_non_def.insert(tk.END, i + '\n')
 
-        self.frame_resultat_non_utilise.grid()
-        self.frame_resultat_non_utilise.config(text=str(len(liste_cle_non_utilisee)) + ' ' + self.cle_non_utilise)
-        text_resultat_non_utilisee = tk.Text(self.frame_resultat_non_utilise, height=15)
-        text_resultat_non_utilisee.pack(fill=tk.BOTH, expand=True)
-        for i in liste_cle_non_utilisee:
-            text_resultat_non_utilisee.insert(tk.END, i + '\n')
-
+            self.frame_resultat_non_utilise.grid()
+            self.frame_resultat_non_utilise.config(text=str(len(liste_cle_non_utilisee)) + ' ' + self.cle_non_utilise)
+            text_resultat_non_utilisee = tk.Text(self.frame_resultat_non_utilise, height=15)
+            text_resultat_non_utilisee.pack(fill=tk.BOTH, expand=True)
+            for i in liste_cle_non_utilisee:
+                text_resultat_non_utilisee.insert(tk.END, i + '\n')
 
     def choisir_dossier(self):
         dir_defaut = "./"
