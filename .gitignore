@@ -1,7 +1,7 @@
-/cx_freeze_build.bat
-/pyinstaller_build.bat
-/setup.py
 /main.spec
 /dist/
 /build/
 .idea
+github_id.py
+cx_freeze_build.bat
+setup.py
