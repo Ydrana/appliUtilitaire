@@ -14,7 +14,7 @@ name: Upload Release Asset
 jobs:
   build:
     name: Upload Release Asset
-    runs-on: win-latest
+    runs-on: windows-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
