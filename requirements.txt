@@ -1,0 +1,4 @@
+requests~=2.25.1
+future~=0.18.2
+ttkthemes~=3.2.2
+PyGithub~=1.54.1
