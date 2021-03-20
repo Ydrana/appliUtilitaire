@@ -56,10 +56,10 @@ class IncrementeurDate(ttk.Frame):
         self.int_hours = tk.IntVar()
         self.input_hours = ttk.Spinbox(self.frame_param_date, textvariable=self.int_hours, from_=-10000, to=10000, width=4)
 
-        self.label_param_days.grid(row=0, column=0, pady=7)
-        self.input_date.grid(row=0, column=1, pady=7)
-        self.label_param_hours.grid(row=0, column=2, pady=7)
-        self.input_hours.grid(row=0, column=3, pady=7)
+        self.label_param_days.grid(row=0, column=0, padx=5, pady=7)
+        self.input_date.grid(row=0, column=1, padx=5, pady=7)
+        self.label_param_hours.grid(row=0, column=2, padx=5, pady=7)
+        self.input_hours.grid(row=0, column=3, padx=5, pady=7)
 
     def lancement_analyse(self):
         """lancement de l'analyse du fichier XML dans un thread parallèle"""

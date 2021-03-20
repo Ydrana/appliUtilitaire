@@ -1,8 +1,8 @@
 # coding: utf-8
 import incrementeurDate
 import TraqueMesCles
-from tkinter import Label, Frame, Button
-from tkinter import Label as tkLabel
+from tkinter.ttk import Label, Frame, Button, Style
+from tkinter import font
 from ttkthemes import ThemedTk
 
 import requests
@@ -59,9 +59,16 @@ if __name__ == '__main__':
     MIN_WIDTH: int = 400
     MIN_HEIGHT: int = 150
 
-    window = ThemedTk(theme='awdark')
+    window = ThemedTk(theme='plastik')  # arc, breeze, plastik, clearlooks, black, equilux
     window.title('Utilitaires TMA')
     window.resizable(False, False)
+
+    # Personnalisation Style
+    style = Style(window)
+    original_font = font.nametofont(style.lookup("TLabel", "font"))
+    f = font.Font(**original_font.configure())
+    f.configure(weight='bold', underline=0, size=9)
+    style.configure('H1.TLabel', font=f)
 
     window.grid_columnconfigure(0, weight=1)
     window.grid_rowconfigure(0, weight=1)
@@ -73,15 +80,15 @@ if __name__ == '__main__':
     frame_principale.grid_rowconfigure(0, weight=1)
     frame_principale.grid(sticky='NSEW')
 
-    label_fonct = Label(frame_principale, text='Fonctionnel')
+    label_fonct = Label(frame_principale, text='Fonctionnel', style='H1.TLabel')
     bouton_lancer = Button(frame_principale, text="Incrémenter dates XML", command=ouvrir_incrementeur_date)
     bouton_dl_visualiseur = Button(frame_principale, text="installation visualiseur d'offres", command=installer_visualiseur)
-    label_java = Label(frame_principale, text='Code Java')
+    label_java = Label(frame_principale, text='Code Java', style='H1.TLabel')
     bouton_lancer_traque = Button(frame_principale, text="Vérifier clés messages", command=ouvrir_traque_mes_cles)
-    label_version = tkLabel(frame_principale, text="v" + __version__, fg="#797979", font=('Arial', 8), anchor='se')
+    label_version = Label(frame_principale, text="v" + __version__, font=('Arial', 8), anchor='se')
 
     label_fonct.grid(row=0, column=0, pady=(15, 5))
-    bouton_lancer.grid(row=1, column=0)
+    bouton_lancer.grid(row=1, column=0, pady=(0, 5))
     bouton_dl_visualiseur.grid(row=2, column=0)
     label_java.grid(row=3, column=0, pady=(15, 5))
     bouton_lancer_traque.grid(row=4, column=0)
