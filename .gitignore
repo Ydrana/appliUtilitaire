@@ -5,3 +5,4 @@
 github_id.py
 cx_freeze_build.bat
 setup.py
+*.spec

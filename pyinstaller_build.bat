@@ -9,5 +9,5 @@ bumpversion --verbose patch
 
 :PACKAGING
 
-pyinstaller --onefile --windowed --icon=./loop.ico main.py --exclude-module numpy
+pyinstaller --onefile --windowed --icon=./loop.ico main.py --exclude-module numpy --name appUtilitaire
 pause
