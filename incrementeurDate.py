@@ -68,7 +68,7 @@ class IncrementeurDate(ttk.Frame):
             self.progress_bar.grid()
             self.progress_bar.start()
             try:
-                self.lire_detecter_remplacer_date(self.str_url.get(), timedelta(days=self.int_date.get()))
+                incrementer_date_in_file(self.str_url.get(), timedelta(days=self.int_date.get()))
                 print('Analyse...')
             finally:
                 self.progress_bar.stop()
@@ -83,62 +83,62 @@ class IncrementeurDate(ttk.Frame):
         self.str_url.set(filedialog.askopenfilename(initialdir=dir_defaut, title="Choisir fichier",
                                                     filetypes=(("xml files", "*.xml"), ("all files", "*.*"))))
 
-    def lire_detecter_remplacer_date(self, file: str, deltatime: timedelta):
-        dict_format = {
-            "((\"|>)20\d{2}-\d{2}-\d{2}(?:\+|-)\d{2}(?::\d{2})(\"|<|-))": "%Y-%m-%d%z",
-            "((\"|>)20\d{6}T\d{9}Z(\"|<|-))": "%Y%m%dT%H%M%S%fZ",
-            "((\"|>)20\d{6}T\d{6}(\"|<|-))": "%Y%m%dT%H%M%S",
-            "((\"|>)20\d{2}-\d{2}-\d{2}T\d{2}:\d{2}Z(\"|<|-))": "%Y-%m-%dT%H:%MZ",
-            "((\"|>)20\d{2}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}(?:\+|-)\d{2}(?::\d{2})(\"|<|-))": "%Y-%m-%dT%H:%M:%S.%f%z",
-            "((\"|>)20\d{2}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\+|-)\d{2}(?::\d{2})(\"|<|-))": "%Y-%m-%dT%H:%M:%S%z",
-            "((\"|>)20\d{6}T\d{2}:\d{2}:\d{2}(?:\+|-)\d{2}(?::\d{2})(\"|<|-))": "%Y%m%dT%H:%M:%S%z",
-            "((\"|>)20\d{2}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z(\"|<|-))": "%Y-%m-%dT%H:%M:%SZ",
-            "((\"|>)20\d{6}T\d{2}:\d{2}:\d{2}Z(\"|<|-))": "%Y%m%dT%H:%M:%SZ",
-            "((\"|>)20\d{2}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\+|-)\d{2}(?::\d{2})(\"|<|-))": "%Y-%m-%dT%H:%M:%S%z",
-            "((\"|>)20\d{2}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\"|<|-))": "%Y-%m-%dT%H:%M:%S",
-            "((\"|>)20\d{2}-\d{2}-\d{2}T\d{2}:\d{2}(\"|<|-))": "%Y-%m-%dT%H:%M",
-            "((\"|>)20\d{6}_\d{9}(\"|<|-))": "%Y%m%d_%H%M%S%f",
-            "((\"|>)20\d{6}_\d{6}(\"|<|-))": "%Y%m%d_%H%M%S",
-            "((\"|>)20\d{6}\s\d{2}:\d{2}(\"|<|-))": "%Y%m%d %H:%M",
-            "((\"|>)20\d{2}-\d{2}-\d{2}(\"|<|-))": "%Y-%m-%d",
-            "((\"|>)T\d{2}:\d{2}:\d{2}(?:\+|-)\d{2}(?::\d{2})(\"|<|-))": "T%H:%M:%S%z",
-            "((\"|>)T\d{2}:\d{2}:\d{2}(\"|<|-))": "T%H:%M:%S",
-            "((\"|>)\d{2}:\d{2}:\d{2}(?:\+|-)\d{2}(?::\d{2})(\"|<|-))": "%H:%M:%S%z",
-            "((\"|>)\d{2}:\d{2}:\d{2}(\"|<|-))": "%H:%M:%S",
-            "((\"|>)\d{2}:\d{2}(\"|<|-))": "%H:%M",
-            "((\"|>)\d{10}:\d{2}:\d{2}(\"|<|-))": "%d%m%Y%H:%M:%S",
-            "((\"|>)\d{2}\/\d{2}\/20\d{2}\s\d{2}:\d{2}:\d{2}(\"|<|-))": "%d/%m/%Y %H:%M:%S",
-            "((\"|>)\d{2}\/\d{2}\/20\d{2}\s\d{2}:\d{2}(\"|<|-))": "%d/%m/%Y %H:%M",
-            "((\"|>)\d{2}\/\d{2}\/20\d{2}\s\d{2}(\"|<|-))": "%d/%m/%Y %H",
-            "((\"|>)\d{2}\/\d{2}\/20\d{2}(\"|<|-))": "%d/%m/%Y",
-            "((\"|>)\d{2}\/\d{2}(\"|<|-))": "%d/%m"
-        }
-        line_num = 0
-        with fileinput.FileInput(file, inplace=True, backup='.bak') as file:
-            for line in file:
-                line_num += 1
-                new_line = line
-                for key, pattern in dict_format.items():
-                    resultat_recherche = re.findall(key, line)
-                    if resultat_recherche:
-                        liste_date = {}
-                        for resultat in resultat_recherche:
-                            string_corrige = resultat[0].replace('"', '').replace('>', '').replace('<', '')
-                            liste_date[datetime.strptime(string_corrige, pattern)] = resultat[0]
 
-                        for date_courante, strg in sorted(liste_date.items(), reverse=False):
-                            date_modifiee = date_courante + deltatime
-                            new_string = date_modifiee.strftime(pattern)
-                            if strg.endswith('Z'):
-                                new_string = strg[0] + new_string[:-5] + 'Z' + strg[-1]
-                            if re.match(r'.*\+\d{2}:00.$', strg):  # Fait passer l'offset UTC du format +0000 à +00:00
-                                new_string = strg[0] + new_string[:-2] + ':00' + strg[-1]
-                            if re.match(r'.*\.\d{3}.*$', strg):  # Fait passer le nbr de microsecondes de 6 à 3
-                                new_string = re.sub(r'(.*\.\d{3})(\d{3})(.*)', r'\1\3', new_string)
-                            new_line = new_line.replace(strg, new_string)
-                            # print(line.replace(text_to_search, replacement_text), end='')
-                print(new_line, end='')
+def incrementer_date_in_file(file: str, deltatime: timedelta):
+    dict_format = {
+        "((\"|>)20\d{2}-\d{2}-\d{2}(?:\+|-)\d{2}(?::\d{2})(\"|<|-))": "%Y-%m-%d%z",
+        "((\"|>)20\d{6}T\d{9}Z(\"|<|-))": "%Y%m%dT%H%M%S%fZ",
+        "((\"|>)20\d{6}T\d{6}(\"|<|-))": "%Y%m%dT%H%M%S",
+        "((\"|>)20\d{2}-\d{2}-\d{2}T\d{2}:\d{2}Z(\"|<|-))": "%Y-%m-%dT%H:%MZ",
+        "((\"|>)20\d{2}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}(?:\+|-)\d{2}(?::\d{2})(\"|<|-))": "%Y-%m-%dT%H:%M:%S.%f%z",
+        "((\"|>)20\d{2}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\+|-)\d{2}(?::\d{2})(\"|<|-))": "%Y-%m-%dT%H:%M:%S%z",
+        "((\"|>)20\d{6}T\d{2}:\d{2}:\d{2}(?:\+|-)\d{2}(?::\d{2})(\"|<|-))": "%Y%m%dT%H:%M:%S%z",
+        "((\"|>)20\d{2}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z(\"|<|-))": "%Y-%m-%dT%H:%M:%SZ",
+        "((\"|>)20\d{6}T\d{2}:\d{2}:\d{2}Z(\"|<|-))": "%Y%m%dT%H:%M:%SZ",
+        "((\"|>)20\d{2}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\"|<|-))": "%Y-%m-%dT%H:%M:%S",
+        "((\"|>)20\d{2}-\d{2}-\d{2}T\d{2}:\d{2}(\"|<|-))": "%Y-%m-%dT%H:%M",
+        "((\"|>)20\d{6}_\d{9}(\"|<|-))": "%Y%m%d_%H%M%S%f",
+        "((\"|>)20\d{6}_\d{6}(\"|<|-))": "%Y%m%d_%H%M%S",
+        "((\"|>)20\d{6}\s\d{2}:\d{2}(\"|<|-))": "%Y%m%d %H:%M",
+        "((\"|>)20\d{2}-\d{2}-\d{2}(\"|<|-))": "%Y-%m-%d",
+        "((\"|>)T\d{2}:\d{2}:\d{2}(?:\+|-)\d{2}(?::\d{2})(\"|<|-))": "T%H:%M:%S%z",
+        "((\"|>)T\d{2}:\d{2}:\d{2}(\"|<|-))": "T%H:%M:%S",
+        "((\"|>)\d{2}:\d{2}:\d{2}(?:\+|-)\d{2}(?::\d{2})(\"|<|-))": "%H:%M:%S%z",
+        "((\"|>)\d{2}:\d{2}:\d{2}(\"|<|-))": "%H:%M:%S",
+        "((\"|>)\d{2}:\d{2}(\"|<|-))": "%H:%M",
+        "((\"|>)\d{10}:\d{2}:\d{2}(\"|<|-))": "%d%m%Y%H:%M:%S",
+        "((\"|>)\d{2}\/\d{2}\/20\d{2}\s\d{2}:\d{2}:\d{2}(\"|<|-))": "%d/%m/%Y %H:%M:%S",
+        "((\"|>)\d{2}\/\d{2}\/20\d{2}\s\d{2}:\d{2}(\"|<|-))": "%d/%m/%Y %H:%M",
+        "((\"|>)\d{2}\/\d{2}\/20\d{2}\s\d{2}(\"|<|-))": "%d/%m/%Y %H",
+        "((\"|>)\d{2}\/\d{2}\/20\d{2}(\"|<|-))": "%d/%m/%Y",
+        "((\"|>)\d{2}\/\d{2}(\"|<|-))": "%d/%m"
+    }
+    line_num = 0
+    with fileinput.FileInput(file, inplace=True, backup='.bak') as file:
+        for line in file:
+            line_num += 1
+            new_line = line
+            for key, pattern in dict_format.items():
+                resultat_recherche = re.findall(key, line)
+                if resultat_recherche:
+                    liste_date = {}
+                    for resultat in resultat_recherche:
+                        string_corrige = resultat[0].replace('"', '').replace('>', '').replace('<', '')
+                        liste_date[datetime.strptime(string_corrige, pattern)] = resultat[0]
+
+                    for date_courante, strg in sorted(liste_date.items(), reverse=False):
+                        date_modifiee = date_courante + deltatime
+                        new_string = date_modifiee.strftime(pattern)
+                        if strg.endswith('Z'):
+                            new_string = strg[0] + new_string[:-5] + 'Z' + strg[-1]
+                        if re.match(r'.*\+\d{2}:00.$', strg):  # Fait passer l'offset UTC du format +0000 à +00:00
+                            new_string = strg[0] + new_string[:-2] + ':00' + strg[-1]
+                        if re.match(r'.*\.\d{3}.*$', strg):  # Fait passer le nbr de microsecondes de 6 à 3
+                            new_string = re.sub(r'(.*\.\d{3})(\d{3})(.*)', r'\1\3', new_string)
+                        new_line = new_line.replace(strg, new_string)
+            print(new_line, end='')
 
 
 if __name__ == '__main__':
     print('lancement main')
+
