@@ -10,7 +10,7 @@ from github import Github
 from pathlib import Path
 import subprocess
 
-__version__: str = '0.1.0'
+__version__: str = '0.1.1'
 
 
 def ouvrir_traque_mes_cles():
