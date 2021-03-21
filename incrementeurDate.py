@@ -5,6 +5,7 @@ from tkinter import ttk
 from tkinter import filedialog
 import fileinput
 import threading
+import subprocess
 from datetime import datetime, timedelta
 import re as re
 
@@ -31,30 +32,32 @@ class IncrementeurDate(ttk.Frame):
         # Widget (niv3)
         self.frame_input = ttk.Frame(self.frame_principale)
         self.frame_param_date = ttk.Labelframe(self.frame_principale, text="Décalage")
+        self.bouton_analyser = ttk.Button(self.frame_principale, text="Incrémenter!", style='H1.TButton', command=self.lancement_analyse)
         self.progress_bar = ttk.Progressbar(self.frame_principale, mode='determinate')
 
         self.bouton_retour.grid(row=0, column=0, pady=(0, 7), sticky='NW')
-        self.frame_input.grid(row=1, column=0, pady=7)
+        self.frame_input.grid(row=1, column=0, columnspan=2, pady=7)
         self.frame_param_date.grid(row=2, column=0, pady=7, sticky='NW')
+        self.bouton_analyser.grid(row=2, column=1, pady=20, sticky='NSWE')
         self.progress_bar.grid(row=3, column=0, pady=7)
         self.progress_bar.grid_forget()
 
         # Widget (niv4)
         self.bouton_browse = ttk.Button(self.frame_input, text="+", width=2, command=self.choisir_dossier)
         self.str_url = tk.StringVar()
-        self.input_url = ttk.Entry(self.frame_input, textvariable=self.str_url, width=42)
-        self.bouton_analyser = ttk.Button(self.frame_input, text="Incrémenter", command=self.lancement_analyse)
+        self.input_url = ttk.Entry(self.frame_input, textvariable=self.str_url, width=45)
+        self.bouton_voir_fichier = ttk.Button(self.frame_input, text="Voir", command=self.voir_fichier)
 
         self.bouton_browse.grid(row=0, column=0, pady=7, sticky='NWE')
         self.input_url.grid(row=0, column=1, padx=2, pady=7)
-        self.bouton_analyser.grid(row=0, column=2, pady=7)
+        self.bouton_voir_fichier.grid(row=0, column=2, pady=7)
 
         self.label_param_days = ttk.Label(self.frame_param_date, text="Jours")
         self.int_date = tk.IntVar()
-        self.input_date = ttk.Spinbox(self.frame_param_date, textvariable=self.int_date, from_=-10000, to=10000, width=5)
+        self.input_date = ttk.Spinbox(self.frame_param_date, textvariable=self.int_date, justify='right', from_=-10000, to=10000, width=5)
         self.label_param_hours = ttk.Label(self.frame_param_date, text="Heures")
         self.int_hours = tk.IntVar()
-        self.input_hours = ttk.Spinbox(self.frame_param_date, textvariable=self.int_hours, from_=-10000, to=10000, width=4)
+        self.input_hours = ttk.Spinbox(self.frame_param_date, textvariable=self.int_hours, justify='right', from_=-10000, to=10000, width=4)
 
         self.label_param_days.grid(row=0, column=0, padx=5, pady=7)
         self.input_date.grid(row=0, column=1, padx=5, pady=7)
@@ -63,26 +66,36 @@ class IncrementeurDate(ttk.Frame):
 
     def lancement_analyse(self):
         """lancement de l'analyse du fichier XML dans un thread parallèle"""
+        filename: str = self.str_url.get()
+        if filename:
+            def lancement_analyser():
+                self.progress_bar.grid()
+                self.progress_bar.start()
+                try:
+                    incrementer_date_in_file(self.str_url.get(), timedelta(days=self.int_date.get()))
+                    print('Analyse...')
+                finally:
+                    self.progress_bar.stop()
+                    self.progress_bar.grid_forget()
+                    self.bouton_analyser['state'] = 'normal'
 
-        def lancement_analyser():
-            self.progress_bar.grid()
-            self.progress_bar.start()
-            try:
-                incrementer_date_in_file(self.str_url.get(), timedelta(days=self.int_date.get()))
-                print('Analyse...')
-            finally:
-                self.progress_bar.stop()
-                self.progress_bar.grid_forget()
-                self.bouton_analyser['state'] = 'normal'
-
-        self.bouton_analyser['state'] = 'disabled'
-        threading.Thread(target=lancement_analyser).start()
+            self.bouton_analyser['state'] = 'disabled'
+            threading.Thread(target=lancement_analyser).start()
+        else:
+            print("Pas de fichier donné!")
 
     def choisir_dossier(self):
         dir_defaut = "./"
         self.str_url.set(filedialog.askopenfilename(initialdir=dir_defaut, title="Choisir fichier",
                                                     filetypes=(("xml files", "*.xml"), ("all files", "*.*"))))
 
+    def voir_fichier(self):
+        """Ouvre le fichier donné avec l'apllication par défaut (ex : Notepad++)"""
+        filename: str = self.str_url.get()
+        if filename:
+            subprocess.Popen([], shell=True)
+        else:
+            print("Pas de fichier donné!")
 
 def incrementer_date_in_file(file: str, deltatime: timedelta):
     dict_format = {

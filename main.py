@@ -69,6 +69,11 @@ if __name__ == '__main__':
     f = font.Font(**original_font.configure())
     f.configure(weight='bold', underline=0, size=9)
     style.configure('H1.TLabel', font=f)
+    original_font = font.nametofont(style.lookup("TButton", "font"))
+
+    f2 = font.Font(**original_font.configure())
+    f2.configure(weight='bold', size=9)
+    style.configure('H1.TButton', font=f2)
 
     window.grid_columnconfigure(0, weight=1)
     window.grid_rowconfigure(0, weight=1)
